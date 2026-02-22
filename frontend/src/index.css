@@ -1,0 +1,24 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+main {
+  display: flex;
+  height: 100%;
+}
+
+.custom-link-dark {
+  stroke: #ffffff !important;
+  stroke-width: 2px;
+}
+.custom-link-light {
+  stroke: #000000 !important;
+  stroke-width: 2px;
+}
+
+@media (max-width: 768px) {
+  main {
+    flex-direction: column;
+    height: auto;
+  }
+}
