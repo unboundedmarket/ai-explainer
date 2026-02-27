@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import ReactMarkdown from "react-markdown";
 import remarkGfm from "remark-gfm";
 import AnalysisResults from "../analysis/AnalysisResults";
@@ -14,7 +14,7 @@ interface ExplanationSectionProps {
     model?: string;
     explanation: string;
   };
-  handleAnalyze: () => void;
+  handleAnalyze: () => Promise<void>;
   analysis: ContractAnalysis | null;
   analysisView: AnalysisView;
   setAnalysisView: React.Dispatch<React.SetStateAction<AnalysisView>>;
@@ -34,10 +34,21 @@ const ExplanationSection: React.FC<ExplanationSectionProps> = ({
 }) => {
   const [analysisOpen, setAnalysisOpen] = useState(false);
   const [flowOpen, setFlowOpen] = useState(false);
+  const [isAnalyzing, setIsAnalyzing] = useState(false);
 
-  const onAnalyzeClicked = () => {
+  useEffect(() => {
+    setAnalysisOpen(false);
+    setFlowOpen(false);
+  }, [contract.name]);
+
+  const onAnalyzeClicked = async () => {
     setAnalysisOpen(true);
-    handleAnalyze();
+    setIsAnalyzing(true);
+    try {
+      await handleAnalyze();
+    } finally {
+      setIsAnalyzing(false);
+    }
   };
   const onFlowClicked = () => {
     setFlowOpen(true);
@@ -92,13 +103,16 @@ const ExplanationSection: React.FC<ExplanationSectionProps> = ({
       <div className="mt-4 space-x-2">
         <button
           onClick={onAnalyzeClicked}
-          className={`px-3 py-2 rounded ${
+          disabled={isAnalyzing}
+          className={`px-3 py-2 rounded transition-opacity ${
+            isAnalyzing ? "opacity-60 cursor-not-allowed" : ""
+          } ${
             isDarkMode
               ? "bg-[#334155] hover:bg-[#475569] text-white"
               : "bg-gray-200 hover:bg-gray-300 text-gray-800"
           }`}
         >
-          Analyze Code with Tree-Sitter
+          {isAnalyzing ? "Analyzing…" : "Analyze Code with Tree-Sitter"}
         </button>
         <button
           onClick={onFlowClicked}

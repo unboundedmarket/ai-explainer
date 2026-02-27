@@ -47,6 +47,8 @@ function layoutDAG(
 const ExecutionFlow: React.FC<ExecutionFlowProps> = ({ code, isDarkMode }) => {
   const [nodes, setNodes] = useState<Node[]>([]);
   const [edges, setEdges] = useState<Edge[]>([]);
+  const [loading, setLoading] = useState(false);
+  const [flowError, setFlowError] = useState<string | null>(null);
   const reactFlowInstanceRef = useRef<ReactFlowInstance | null>(null);
 
   const onInit = useCallback((instance: ReactFlowInstance) => {
@@ -56,6 +58,7 @@ const ExecutionFlow: React.FC<ExecutionFlowProps> = ({ code, isDarkMode }) => {
   useEffect(() => {
     setNodes([]);
     setEdges([]);
+    setFlowError(null);
   }, [code]);
 
   useEffect(() => {
@@ -66,6 +69,8 @@ const ExecutionFlow: React.FC<ExecutionFlowProps> = ({ code, isDarkMode }) => {
 
   useEffect(() => {
     const fetchFlow = async () => {
+      setLoading(true);
+      setFlowError(null);
       try {
         const response = await call_openai(code);
         if (!response.ok) {
@@ -102,10 +107,35 @@ const ExecutionFlow: React.FC<ExecutionFlowProps> = ({ code, isDarkMode }) => {
         setEdges(layoutedEdges);
       } catch (error) {
         console.error("Error generating execution flow:", error);
+        setFlowError(
+          "Failed to generate execution flow. Please check your connection and try again."
+        );
+      } finally {
+        setLoading(false);
       }
     };
     fetchFlow();
   }, [code]);
+
+  if (loading) {
+    return (
+      <div
+        className={`flex items-center justify-center h-32 text-sm ${
+          isDarkMode ? "text-gray-400" : "text-gray-500"
+        }`}
+      >
+        Generating execution flow…
+      </div>
+    );
+  }
+
+  if (flowError) {
+    return (
+      <div className="text-red-500 text-sm p-2 rounded border border-red-400">
+        {flowError}
+      </div>
+    );
+  }
 
   return (
     <div style={{ width: "100%", height: "600px" }}>

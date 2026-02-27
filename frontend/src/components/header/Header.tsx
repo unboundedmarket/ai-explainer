@@ -24,6 +24,7 @@ const Header: React.FC<HeaderProps> = ({
       <h1 className="text-2xl font-bold mb-1">Cardano Smart Contract Explainer</h1>
       <button
         ref={iconRef}
+        aria-label="About this tool"
         className={`${isDarkMode ? "text-white" : "text-gray-900"} p-2 rounded-full hover:bg-gray-200 dark:hover:bg-[#334155] transition-colors duration-200`}
         onClick={toggleAbout}
       >
@@ -37,6 +38,7 @@ const Header: React.FC<HeaderProps> = ({
         <h1 className="text-2xl font-bold mb-1">Cardano Smart Contract Explainer</h1>
         <button
           ref={iconRef}
+          aria-label="About this tool"
           className={`${isDarkMode ? "text-white" : "text-gray-900"} p-2 rounded-full hover:bg-gray-200 dark:hover:bg-[#334155] transition-colors duration-200`}
           onClick={toggleAbout}
         >

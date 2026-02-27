@@ -1,11 +1,11 @@
-import React from "react";
+import React, { useEffect, useRef } from "react";
 
 interface ChatBoxProps {
   isDarkMode: boolean;
   messages: { role: string; content: string }[];
   currentMessage: string;
   setCurrentMessage: React.Dispatch<React.SetStateAction<string>>;
-  handleKeyDown: (e: React.KeyboardEvent<HTMLInputElement>) => void;
+  handleKeyDown: (e: React.KeyboardEvent<HTMLTextAreaElement>) => void;
   handleSend: () => void;
 }
 
@@ -17,6 +17,12 @@ const ChatBox: React.FC<ChatBoxProps> = ({
   handleKeyDown,
   handleSend,
 }) => {
+  const messagesEndRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
+  }, [messages]);
+
   return (
     <div
       className={`p-4 backdrop-blur-lg rounded-lg shadow-lg transition-colors duration-300 mb-4 ${
@@ -28,19 +34,20 @@ const ChatBox: React.FC<ChatBoxProps> = ({
       <h2 className="text-xl font-bold mb-2">Chat</h2>
       <div className="border rounded p-2 mb-4 max-h-60 overflow-auto space-y-2">
         {messages.map((msg, idx) => (
-          <div key={idx} className="whitespace-pre-wrap">
+          <div key={`${msg.role}-${idx}`} className="whitespace-pre-wrap">
             <strong className="mr-2">
               {msg.role === "assistant" ? "Assistant:" : "You:"}
             </strong>
             <span>{msg.content}</span>
           </div>
         ))}
+        <div ref={messagesEndRef} />
       </div>
 
-      <div className="flex items-center gap-2">
-        <input
-          type="text"
-          className={`flex-1 p-2 rounded border ${
+      <div className="flex items-end gap-2">
+        <textarea
+          rows={2}
+          className={`flex-1 p-2 rounded border resize-none ${
             isDarkMode
               ? "bg-[#0f0f0f] border-gray-600 text-white"
               : "bg-white border-gray-300 text-black"

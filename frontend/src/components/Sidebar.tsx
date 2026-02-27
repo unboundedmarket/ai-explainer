@@ -37,10 +37,19 @@ interface Contract {
   name: string;
 }
 
+interface UploadedContract {
+  name: string;
+  source: string;
+  code: string;
+  explanation: string;
+  model: string;
+}
+
 interface SidebarProps {
   contracts: Contract[];
   selected: string;
   onSelect: (source: string) => void;
+  onContractUploaded: (contract: UploadedContract) => void;
   isDarkMode: boolean;
   toggleDarkMode: () => void;
   isCollapsed: boolean;
@@ -51,6 +60,7 @@ const Sidebar: React.FC<SidebarProps> = ({
   contracts,
   selected,
   onSelect,
+  onContractUploaded,
   isDarkMode,
   toggleDarkMode,
   isCollapsed,
@@ -88,7 +98,15 @@ const Sidebar: React.FC<SidebarProps> = ({
       });
 
       if (response.ok) {
+        const data = await response.json();
         setUploadStatus("File uploaded successfully!");
+        onContractUploaded({
+          name: data.name,
+          source: selectedFile.name,
+          code: data.code,
+          explanation: data.explanation,
+          model: "",
+        });
       } else {
         setUploadStatus("Error uploading file.");
       }

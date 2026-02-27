@@ -48,7 +48,7 @@ async function callLLM(prompt, messages = null) {
         model: modelId,
         messages: chatMessages,
         temperature: 0.7,
-        max_tokens: 2000
+        max_tokens: parseInt(process.env.MAX_TOKENS) || 4000
       },
       {
         headers: {

@@ -7,7 +7,21 @@ const { callLLM } = require('./services/explainContract');
 const app = express();
 const PORT = process.env.PORT || 3001;
 
-app.use(cors());
+const allowedOrigins = process.env.ALLOWED_ORIGINS
+  ? process.env.ALLOWED_ORIGINS.split(',').map((o) => o.trim())
+  : ['http://localhost:3000', 'http://localhost:3001'];
+
+app.use(
+  cors({
+    origin: (origin, callback) => {
+      if (!origin || allowedOrigins.includes(origin)) {
+        callback(null, true);
+      } else {
+        callback(new Error(`CORS: origin "${origin}" not allowed`));
+      }
+    },
+  })
+);
 app.use(express.json({ limit: '1mb' }));
 
 app.get('/health', (req, res) => {

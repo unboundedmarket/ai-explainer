@@ -44,6 +44,10 @@ const MainContent: React.FC<MainContentProps> = ({
     AnalysisView.SyntaxTree
   );
 
+  useEffect(() => {
+    setAnalysis(null);
+  }, [contract.source]);
+
   const [aboutOpen, setAboutOpen] = useState(false);
   const iconRef = useRef<HTMLButtonElement>(null);
   const aboutRef = useRef<HTMLDivElement>(null);
@@ -148,11 +152,14 @@ const MainContent: React.FC<MainContentProps> = ({
     }
   }, [currentMessage, chatMessages, contract.code]);
 
-  const handleKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
-    if (e.key === "Enter") handleSend();
+  const handleKeyDown = (e: React.KeyboardEvent<HTMLTextAreaElement>) => {
+    if (e.key === "Enter" && !e.shiftKey) {
+      e.preventDefault();
+      handleSend();
+    }
   };
 
-  const handleAnalyze = async () => {
+  const handleAnalyze = async (): Promise<void> => {
     try {
       const result = await analyzeSmartContract(contract.code, contract.source);
       setAnalysis(result.analysis);
