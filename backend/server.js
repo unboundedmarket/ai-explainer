@@ -3,22 +3,25 @@ const express = require('express');
 const cors = require('cors');
 const explainContract = require('./services/explainContract');
 const { callLLM } = require('./services/explainContract');
+const stats = require('./services/stats');
 
 const app = express();
 const PORT = process.env.PORT || 3001;
 
-const allowedOrigins = process.env.ALLOWED_ORIGINS
-  ? process.env.ALLOWED_ORIGINS.split(',').map((o) => o.trim())
-  : ['http://localhost:3000', 'http://localhost:3001'];
+// CORS allowlist; override via ALLOWED_ORIGINS (comma-separated).
+const DEFAULT_ALLOWED_ORIGINS = ['http://localhost:3000', 'http://localhost:3001'];
+const allowedOrigins = (process.env.ALLOWED_ORIGINS
+  ? process.env.ALLOWED_ORIGINS.split(',').map((o) => o.trim()).filter(Boolean)
+  : DEFAULT_ALLOWED_ORIGINS);
 
 app.use(
   cors({
-    origin: (origin, callback) => {
+    origin(origin, callback) {
+      // Allow non-browser clients (no Origin header).
       if (!origin || allowedOrigins.includes(origin)) {
-        callback(null, true);
-      } else {
-        callback(new Error(`CORS: origin "${origin}" not allowed`));
+        return callback(null, true);
       }
+      return callback(new Error(`Origin not allowed by CORS: ${origin}`));
     },
   })
 );
@@ -26,6 +29,21 @@ app.use(express.json({ limit: '1mb' }));
 
 app.get('/health', (req, res) => {
   res.json({ status: 'ok', service: 'Cardano Contract Explainer' });
+});
+
+// Platform metrics.
+app.get('/api/stats', (req, res) => {
+  res.json(stats.getStats());
+});
+
+// Record a visit (one id per browser).
+app.post('/api/visit', (req, res) => {
+  const { userId } = req.body || {};
+  if (!userId) {
+    return res.status(400).json({ error: 'Missing "userId" field.' });
+  }
+  stats.recordUser(userId);
+  return res.json(stats.getStats());
 });
 
 app.post('/api/explain', async (req, res) => {
@@ -67,6 +85,7 @@ app.post('/api/explain', async (req, res) => {
     }
 
     const analysis = await explainContract(files);
+    stats.recordAnalysis(1);
     return res.status(200).json({ analysis });
   } catch (err) {
     console.error('Error analyzing smart contract:', err.message);
@@ -116,9 +135,12 @@ app.post('/api/upload', async (req, res) => {
 
     const files = [{ path: fileName, content: fileContent }];
     const explanation = await explainContract(files);
+    stats.recordAnalysis(1);
 
     return res.status(200).json({
       name: fileName.replace(/\.[^/.]+$/, ''),
+      source: fileName,
+      model: '',
       code: fileContent,
       explanation,
     });
@@ -164,6 +186,8 @@ app.listen(PORT, () => {
   console.log(`  POST /api/chat     - Chat about contracts`);
   console.log(`  POST /api/upload   - Upload and explain a single file`);
   console.log(`  POST /api/openai   - Generate execution flow DAG`);
+  console.log(`  GET  /api/stats    - Platform metrics (uptime, users, analyzed)`);
+  console.log(`  POST /api/visit    - Record an anonymous visit`);
 
   if (!process.env.OPENAI_API_KEY) {
     console.warn('WARNING: OPENAI_API_KEY not set in .env file');

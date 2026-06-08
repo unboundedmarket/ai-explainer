@@ -19,6 +19,7 @@ const ChatBox: React.FC<ChatBoxProps> = ({
 }) => {
   const messagesEndRef = useRef<HTMLDivElement>(null);
 
+  // Auto-scroll to latest message.
   useEffect(() => {
     messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
   }, [messages]);
@@ -44,7 +45,7 @@ const ChatBox: React.FC<ChatBoxProps> = ({
         <div ref={messagesEndRef} />
       </div>
 
-      <div className="flex items-end gap-2">
+      <div className="flex items-center gap-2">
         <textarea
           rows={2}
           className={`flex-1 p-2 rounded border resize-none ${
@@ -52,7 +53,7 @@ const ChatBox: React.FC<ChatBoxProps> = ({
               ? "bg-[#0f0f0f] border-gray-600 text-white"
               : "bg-white border-gray-300 text-black"
           }`}
-          placeholder="Ask a follow-up question..."
+          placeholder="Ask a follow-up question... (Enter to send, Shift+Enter for a new line)"
           value={currentMessage}
           onChange={(e) => setCurrentMessage(e.target.value)}
           onKeyDown={handleKeyDown}

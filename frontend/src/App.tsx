@@ -21,22 +21,21 @@ const App: React.FC = () => {
     contractData as ContractEntry[]
   );
   const [selectedSource, setSelectedSource] = useState(
-    (contractData as ContractEntry[]).length > 0
-      ? (contractData as ContractEntry[])[0].source
-      : ""
+    contracts.length > 0 ? contracts[0].source : ""
   );
 
-  const selectedContract =
-    contracts.find((c) => c.source === selectedSource) || contracts[0];
-
-  const handleContractUploaded = (uploaded: ContractEntry) => {
-    setContracts((prev) => {
-      const exists = prev.some((c) => c.source === uploaded.source);
-      if (exists) return prev;
-      return [...prev, uploaded];
-    });
-    setSelectedSource(uploaded.source);
+  const handleContractUploaded = (contract: ContractEntry) => {
+    setContracts((prev) =>
+      prev.some((c) => c.source === contract.source)
+        ? prev.map((c) => (c.source === contract.source ? contract : c))
+        : [...prev, contract]
+    );
+    setSelectedSource(contract.source);
   };
+
+  const selectedContract = contracts.find(
+    (c) => c.source === selectedSource
+  ) || contracts[0];
 
   useEffect(() => {
     if (isDarkMode) {
@@ -59,11 +58,11 @@ const App: React.FC = () => {
           contracts={contracts}
           selected={selectedSource}
           onSelect={setSelectedSource}
-          onContractUploaded={handleContractUploaded}
           isDarkMode={isDarkMode}
           toggleDarkMode={() => setIsDarkMode(!isDarkMode)}
           isCollapsed={isCollapsed}
           setIsCollapsed={setIsCollapsed}
+          onContractUploaded={handleContractUploaded}
         />
 
         <div

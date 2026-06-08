@@ -48,7 +48,7 @@ const ExecutionFlow: React.FC<ExecutionFlowProps> = ({ code, isDarkMode }) => {
   const [nodes, setNodes] = useState<Node[]>([]);
   const [edges, setEdges] = useState<Edge[]>([]);
   const [loading, setLoading] = useState(false);
-  const [flowError, setFlowError] = useState<string | null>(null);
+  const [error, setError] = useState<string | null>(null);
   const reactFlowInstanceRef = useRef<ReactFlowInstance | null>(null);
 
   const onInit = useCallback((instance: ReactFlowInstance) => {
@@ -58,7 +58,6 @@ const ExecutionFlow: React.FC<ExecutionFlowProps> = ({ code, isDarkMode }) => {
   useEffect(() => {
     setNodes([]);
     setEdges([]);
-    setFlowError(null);
   }, [code]);
 
   useEffect(() => {
@@ -70,7 +69,7 @@ const ExecutionFlow: React.FC<ExecutionFlowProps> = ({ code, isDarkMode }) => {
   useEffect(() => {
     const fetchFlow = async () => {
       setLoading(true);
-      setFlowError(null);
+      setError(null);
       try {
         const response = await call_openai(code);
         if (!response.ok) {
@@ -105,10 +104,12 @@ const ExecutionFlow: React.FC<ExecutionFlowProps> = ({ code, isDarkMode }) => {
         );
         setNodes(layouted);
         setEdges(layoutedEdges);
-      } catch (error) {
-        console.error("Error generating execution flow:", error);
-        setFlowError(
-          "Failed to generate execution flow. Please check your connection and try again."
+      } catch (err) {
+        console.error("Error generating execution flow:", err);
+        setError(
+          err instanceof Error
+            ? err.message
+            : "Failed to generate the execution flow. Please try again."
         );
       } finally {
         setLoading(false);
@@ -117,33 +118,29 @@ const ExecutionFlow: React.FC<ExecutionFlowProps> = ({ code, isDarkMode }) => {
     fetchFlow();
   }, [code]);
 
-  if (loading) {
-    return (
-      <div
-        className={`flex items-center justify-center h-32 text-sm ${
-          isDarkMode ? "text-gray-400" : "text-gray-500"
-        }`}
-      >
-        Generating execution flow…
-      </div>
-    );
-  }
-
-  if (flowError) {
-    return (
-      <div className="text-red-500 text-sm p-2 rounded border border-red-400">
-        {flowError}
-      </div>
-    );
-  }
-
   return (
-    <div style={{ width: "100%", height: "600px" }}>
-      <ReactFlow nodes={nodes} edges={edges} onInit={onInit} fitView>
-        <MiniMap />
-        <Controls />
-        <Background gap={12} size={1} />
-      </ReactFlow>
+    <div style={{ width: "100%" }}>
+      {loading && (
+        <div
+          className={`mb-2 px-3 py-2 rounded text-sm ${
+            isDarkMode ? "bg-[#1e293b] text-gray-300" : "bg-gray-100 text-gray-700"
+          }`}
+        >
+          Generating execution flow…
+        </div>
+      )}
+      {error && (
+        <div className="mb-2 px-3 py-2 rounded text-sm bg-red-100 border border-red-400 text-red-700">
+          {error}
+        </div>
+      )}
+      <div style={{ width: "100%", height: "600px" }}>
+        <ReactFlow nodes={nodes} edges={edges} onInit={onInit} fitView>
+          <MiniMap />
+          <Controls />
+          <Background gap={12} size={1} />
+        </ReactFlow>
+      </div>
     </div>
   );
 };

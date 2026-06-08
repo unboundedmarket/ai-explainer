@@ -1,6 +1,7 @@
 import React, { useState } from "react";
 import XBlack from "./logos/XBlack.svg";
 import XWhite from "./logos/XWhite.svg";
+import PlatformStats from "./stats/PlatformStats";
 
 const FileContractIcon = () => (
   <svg stroke="currentColor" fill="currentColor" strokeWidth="0" viewBox="0 0 384 512" height="20" width="20" xmlns="http://www.w3.org/2000/svg">
@@ -38,33 +39,33 @@ interface Contract {
 }
 
 interface UploadedContract {
+  model: string;
   name: string;
   source: string;
   code: string;
   explanation: string;
-  model: string;
 }
 
 interface SidebarProps {
   contracts: Contract[];
   selected: string;
   onSelect: (source: string) => void;
-  onContractUploaded: (contract: UploadedContract) => void;
   isDarkMode: boolean;
   toggleDarkMode: () => void;
   isCollapsed: boolean;
   setIsCollapsed: (isCollapsed: boolean) => void;
+  onContractUploaded?: (contract: UploadedContract) => void;
 }
 
 const Sidebar: React.FC<SidebarProps> = ({
   contracts,
   selected,
   onSelect,
-  onContractUploaded,
   isDarkMode,
   toggleDarkMode,
   isCollapsed,
   setIsCollapsed,
+  onContractUploaded,
 }) => {
   const [searchTerm, setSearchTerm] = useState("");
   const [selectedFile, setSelectedFile] = useState<File | null>(null);
@@ -98,15 +99,10 @@ const Sidebar: React.FC<SidebarProps> = ({
       });
 
       if (response.ok) {
-        const data = await response.json();
+        const newContract: UploadedContract = await response.json();
+        // Add the uploaded contract to the sidebar.
+        onContractUploaded?.(newContract);
         setUploadStatus("File uploaded successfully!");
-        onContractUploaded({
-          name: data.name,
-          source: selectedFile.name,
-          code: data.code,
-          explanation: data.explanation,
-          model: "",
-        });
       } else {
         setUploadStatus("Error uploading file.");
       }
@@ -225,6 +221,7 @@ const Sidebar: React.FC<SidebarProps> = ({
       </ul>
 
       <footer className="mt-auto p-4 flex flex-col items-center">
+        {!isCollapsed && <PlatformStats isDarkMode={isDarkMode} />}
         {!isCollapsed && (
           <div className="w-full mb-4 flex flex-col items-center space-y-2 px-2">
             <input

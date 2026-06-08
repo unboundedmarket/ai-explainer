@@ -10,6 +10,9 @@ package-lock.json
 build/
 dist/
 
+# Persisted runtime metrics
+backend/data/
+
 # Logs
 *.log
 npm-debug.log*

@@ -44,10 +44,6 @@ const MainContent: React.FC<MainContentProps> = ({
     AnalysisView.SyntaxTree
   );
 
-  useEffect(() => {
-    setAnalysis(null);
-  }, [contract.source]);
-
   const [aboutOpen, setAboutOpen] = useState(false);
   const iconRef = useRef<HTMLButtonElement>(null);
   const aboutRef = useRef<HTMLDivElement>(null);
@@ -57,6 +53,11 @@ const MainContent: React.FC<MainContentProps> = ({
     window.addEventListener("resize", handleResize);
     return () => window.removeEventListener("resize", handleResize);
   }, []);
+
+  // Clear analysis when the contract changes.
+  useEffect(() => {
+    setAnalysis(null);
+  }, [contract.source]);
 
   useEffect(() => {
     const handleClickOutside = (e: MouseEvent) => {
@@ -153,13 +154,14 @@ const MainContent: React.FC<MainContentProps> = ({
   }, [currentMessage, chatMessages, contract.code]);
 
   const handleKeyDown = (e: React.KeyboardEvent<HTMLTextAreaElement>) => {
+    // Enter sends; Shift+Enter = newline.
     if (e.key === "Enter" && !e.shiftKey) {
       e.preventDefault();
       handleSend();
     }
   };
 
-  const handleAnalyze = async (): Promise<void> => {
+  const handleAnalyze = async () => {
     try {
       const result = await analyzeSmartContract(contract.code, contract.source);
       setAnalysis(result.analysis);

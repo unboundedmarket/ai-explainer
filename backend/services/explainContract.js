@@ -34,6 +34,7 @@ async function callLLM(prompt, messages = null) {
   const apiUrl = process.env.OPENAI_API_URL;
   const apiKey = process.env.OPENAI_API_KEY;
   const modelId = process.env.MODEL_ID || 'gpt-4';
+  const maxTokens = parseInt(process.env.MAX_TOKENS, 10) || 4000;
 
   if (!apiUrl || !apiKey) {
     throw new Error('Missing OPENAI_API_URL or OPENAI_API_KEY in environment variables');
@@ -48,7 +49,7 @@ async function callLLM(prompt, messages = null) {
         model: modelId,
         messages: chatMessages,
         temperature: 0.7,
-        max_tokens: parseInt(process.env.MAX_TOKENS) || 4000
+        max_tokens: maxTokens
       },
       {
         headers: {

@@ -14,7 +14,7 @@ interface ExplanationSectionProps {
     model?: string;
     explanation: string;
   };
-  handleAnalyze: () => Promise<void>;
+  handleAnalyze: () => void | Promise<void>;
   analysis: ContractAnalysis | null;
   analysisView: AnalysisView;
   setAnalysisView: React.Dispatch<React.SetStateAction<AnalysisView>>;
@@ -36,14 +36,15 @@ const ExplanationSection: React.FC<ExplanationSectionProps> = ({
   const [flowOpen, setFlowOpen] = useState(false);
   const [isAnalyzing, setIsAnalyzing] = useState(false);
 
+  // Reset panels when the contract changes.
   useEffect(() => {
     setAnalysisOpen(false);
     setFlowOpen(false);
-  }, [contract.name]);
+  }, [contract.name, code]);
 
   const onAnalyzeClicked = async () => {
-    setAnalysisOpen(true);
     setIsAnalyzing(true);
+    setAnalysisOpen(true);
     try {
       await handleAnalyze();
     } finally {
@@ -105,7 +106,7 @@ const ExplanationSection: React.FC<ExplanationSectionProps> = ({
           onClick={onAnalyzeClicked}
           disabled={isAnalyzing}
           className={`px-3 py-2 rounded transition-opacity ${
-            isAnalyzing ? "opacity-60 cursor-not-allowed" : ""
+            isAnalyzing ? "opacity-50 cursor-not-allowed" : ""
           } ${
             isDarkMode
               ? "bg-[#334155] hover:bg-[#475569] text-white"
